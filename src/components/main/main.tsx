@@ -23,23 +23,27 @@ export const Main = () => {
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
-    const savedTracks: Track[] = JSON.parse(
-      localStorage.getItem('keplayerTracks') || '[]'
-    );
-    const urls: string[] = [];
-    
-    savedTracks.forEach(track => {
-      if (track.file?.data) {
-        const blob = new Blob([new Uint8Array(track.file.data)], { 
-          type: track.type 
-        });
-        urls.push(URL.createObjectURL(blob));
+    // Загрузка из localStorage только на клиенте
+    if (typeof window !== 'undefined') {
+      const savedTracks: Track[] = JSON.parse(
+        localStorage.getItem('keplayerTracks') || '[]'
+      );
+      const urls: string[] = [];
+      
+      savedTracks.forEach(track => {
+        if (track.file?.data) {
+          const blob = new Blob([new Uint8Array(track.file.data)], { 
+            type: track.type 
+          });
+          urls.push(URL.createObjectURL(blob));
+        }
+      });
+      
+      setBlobUrls(urls);
+      setTracks(savedTracks);
+      if (savedTracks.length > 0 && currentTrack === -1) {
+        setCurrentTrack(0);
       }
-    });
-    
-    setBlobUrls(urls);
-    if (savedTracks.length > 0 && currentTrack === -1) {
-      setCurrentTrack(0);
     }
   }, []);
 
@@ -62,7 +66,11 @@ export const Main = () => {
     
     setBlobUrls(urls);
     setTracks(updatedTracks);
-    localStorage.setItem('keplayerTracks', JSON.stringify(updatedTracks));
+    
+    // Сохранение только на клиенте
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('keplayerTracks', JSON.stringify(updatedTracks));
+    }
   };
 
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
