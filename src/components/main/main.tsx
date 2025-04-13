@@ -16,7 +16,6 @@ export const Main = () => {
     JSON.parse(localStorage.getItem('keplayerTracks') || '[]')
   );
   const [currentTrack, setCurrentTrack] = useState<number>(-1);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [blobUrls, setBlobUrls] = useState<string[]>([]);
   
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -93,7 +92,6 @@ export const Main = () => {
   const playTrack = (index: number) => {
     if (index >= 0 && index < tracks.length && audioRef.current) {
       setCurrentTrack(index);
-      setIsPlaying(true);
       audioRef.current.src = blobUrls[index];
       audioRef.current.play().catch(console.error);
       if (selectRef.current) {
@@ -107,10 +105,8 @@ export const Main = () => {
     
     if (audioRef.current.paused) {
       audioRef.current.play();
-      setIsPlaying(true);
     } else {
       audioRef.current.pause();
-      setIsPlaying(false);
     }
   };
 
