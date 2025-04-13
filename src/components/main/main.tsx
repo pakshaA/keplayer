@@ -23,53 +23,44 @@ export const Main = () => {
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
-    // Загрузка из localStorage только на клиенте
-    if (typeof window !== 'undefined') {
-      const savedTracks: Track[] = JSON.parse(
-        localStorage.getItem('keplayerTracks') || '[]'
-      );
-      const urls: string[] = [];
-      
-      savedTracks.forEach(track => {
-        if (track.file?.data) {
-          const blob = new Blob([new Uint8Array(track.file.data)], { 
-            type: track.type 
-          });
-          urls.push(URL.createObjectURL(blob));
-        }
-      });
-      
-      setBlobUrls(urls);
-      setTracks(savedTracks);
-      if (savedTracks.length > 0 && currentTrack === -1) {
-        setCurrentTrack(0);
+    // Загрузка данных только на клиенте
+    if (typeof window === 'undefined') return;
+
+    const savedTracks: Track[] = JSON.parse(
+      localStorage.getItem('keplayerTracks') || '[]'
+    );
+    
+    const urls = savedTracks.map(track => {
+      if (track.file?.data) {
+        return URL.createObjectURL(
+          new Blob([new Uint8Array(track.file.data)], { type: track.type })
+        );
       }
+      return '';
+    }).filter(Boolean) as string[];
+
+    setBlobUrls(urls);
+    setTracks(savedTracks);
+    if (savedTracks.length > 0) {
+      setCurrentTrack(0);
     }
   }, []);
 
   const updateTrackList = (newTracks: Track[]) => {
-    const urls: string[] = [];
-    const updatedTracks = newTracks.map(track => {
-      if (track.file) {
-        const blob = new Blob([new Uint8Array(track.file.data)], {
-          type: track.type
-        });
-        const url = URL.createObjectURL(blob);
-        urls.push(url);
-        return {
-          ...track,
-          url
-        };
+    const urls = newTracks.map(track => {
+      if (track.file?.data) {
+        return URL.createObjectURL(
+          new Blob([new Uint8Array(track.file.data)], { type: track.type })
+        );
       }
-      return track;
-    });
-    
+      return '';
+    }).filter(Boolean) as string[];
+
     setBlobUrls(urls);
-    setTracks(updatedTracks);
+    setTracks(newTracks);
     
-    // Сохранение только на клиенте
     if (typeof window !== 'undefined') {
-      localStorage.setItem('keplayerTracks', JSON.stringify(updatedTracks));
+      localStorage.setItem('keplayerTracks', JSON.stringify(newTracks));
     }
   };
 
